@@ -1,0 +1,13 @@
+name: Reconcile
+on:
+  pull_request:
+    paths:
+      - "data/**"
+      - "src/**"
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run reconciliation
+        run: python src/reconcile.py

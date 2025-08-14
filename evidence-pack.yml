@@ -1,0 +1,36 @@
+name: Evidence Pack
+on:
+  push:
+    branches: [ "main" ]
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build evidence pack
+        run: |
+          echo "Collecting commit metadata and workflow run hints"
+          python - << 'PY'
+          import json, subprocess, pathlib
+          out_path = pathlib.Path("docs/evidence-pack.json")
+          def sh(cmd):
+              return subprocess.check_output(cmd, shell=True, text=True).strip()
+          commits = sh("git log -n 10 --pretty=format:'%h|%an|%ad|%s' --date=iso").splitlines()
+          files = sh("git diff --name-only HEAD~1..HEAD || true").splitlines()
+          pack = {
+              "latest_commits": [
+                  dict(zip(["hash","author","date","subject"], c.split("|",3))) for c in commits
+              ],
+              "last_push_changed_files": files,
+              "notes": "Augmented manually with links to PRs and workflow runs as needed."
+          }
+          out_path.write_text(json.dumps(pack, indent=2))
+          print("Wrote", out_path)
+          PY
+      - name: Commit evidence
+        run: |
+          git config user.name "automation-bot"
+          git config user.email "actions@github.com"
+          git add docs/evidence-pack.json
+          git commit -m "chore: update evidence pack" || echo "No changes"
+          git push

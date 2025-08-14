@@ -1,0 +1,13 @@
+name: Change Control Gate
+on:
+  pull_request:
+    types: [opened, edited, synchronize, labeled, unlabeled]
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PR metadata & approvals
+        env:
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: python src/change_gate.py

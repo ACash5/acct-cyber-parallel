@@ -1,0 +1,12 @@
+name: Threat Hunt
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 9 * * 1"  # Every Monday 9am UTC
+jobs:
+  hunt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run hunt playbook
+        run: python src/hunt_variances.py
